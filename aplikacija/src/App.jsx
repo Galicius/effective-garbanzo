@@ -31,7 +31,7 @@ const App = () => {
   };
 
   return (
-    <Router>
+    <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <div >
         {currentView !== "login" && <Header onNavigate={handleNavigate} />}
         {currentView === "login" && <LoginForm onLogin={handleLogin} />}

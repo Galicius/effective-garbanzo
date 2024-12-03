@@ -165,7 +165,10 @@ app.get("/api/entries/month", (req, res) => {
   });
 });
 
-// Start the server
-app.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`);
-});
+if (require.main === module) {
+  app.listen(port, () => {
+    console.log(`Server running on http://localhost:${port}`);
+  });
+}
+
+module.exports = app; // Export the app for testing
