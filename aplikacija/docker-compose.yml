@@ -1,0 +1,38 @@
+version: "3.8"
+
+services:
+  mysql:
+    image: mysql:latest
+    container_name: my_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword123
+      MYSQL_DATABASE: projectdb
+      MYSQL_USER: projectuser
+      MYSQL_PASSWORD: projectpass123
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./db/db_setup.sql:/docker-entrypoint-initdb.d/db_setup.sql
+    networks:
+      - my_network
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: my_phpmyadmin
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: projectuser
+      PMA_PASSWORD: projectpass123
+    ports:
+      - "8080:80"
+    depends_on:
+      - mysql
+    networks:
+      - my_network
+
+volumes:
+  mysql_data:
+
+networks:
+  my_network:

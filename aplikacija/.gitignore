@@ -1,0 +1,33 @@
+# Node.js dependencies
+node_modules/
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Docker volumes (if storing runtime data)
+docker_data/
+mysql_data/
+
+# Build outputs
+dist/
+build/
+out/
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Editor settings
+.vscode/
+.idea/
+
+# Git-specific
+.git/
+
+# Compiled files (JavaScript from TypeScript, CSS from SCSS)
+*.js.map
+*.css.map

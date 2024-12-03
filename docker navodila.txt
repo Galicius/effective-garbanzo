@@ -1,0 +1,5 @@
+Inštaliraš docker
+Odpreš terminal v tem folderju in vneseš
+docker-compose up -d     # Zažene docker, mysql, phpmyadmin, strukturo baze z mock podatki 
+docker-compose down -v   # Ustavi vse procese
+
