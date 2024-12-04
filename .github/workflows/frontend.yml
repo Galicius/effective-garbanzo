@@ -27,8 +27,8 @@ jobs:
     - name: Cache node_modules  # Caching odvisnosti
       uses: actions/cache@v3
       with:
-        path: aplikacija/frontend/node_modules # Pot do mape node_modules
-        key: ${{ runner.os }}-frontend-${{ hashFiles('aplikacija/frontend/package-lock.json') }} # Ključ za cache
+        path: aplikacija/node_modules # Pot do mape node_modules
+        key: ${{ runner.os }}-frontend-${{ hashFiles('aplikacija/package-lock.json') }} # Ključ za cache
         restore-keys: |
           ${{ runner.os }}-frontend-
       # ⚠️ KAKO DELUJE CACHING:
@@ -71,7 +71,7 @@ jobs:
       uses: actions/cache@v3
       with:
         path: aplikacija/node_modules
-        key: ${{ runner.os }}-frontend-${{ hashFiles('aplikacija/frontend/package-lock.json') }}
+        key: ${{ runner.os }}-frontend-${{ hashFiles('aplikacija/package-lock.json') }}
         restore-keys: |
           ${{ runner.os }}-frontend-
 
@@ -92,4 +92,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: frontend-coverage
-        path: aplikacija/frontend/coverage/
+        path: aplikacija/coverage/
