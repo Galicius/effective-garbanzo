@@ -27,8 +27,8 @@ jobs:
     - name: Cache node_modules  # Caching odvisnosti
       uses: actions/cache@v3
       with:
-        path: 02_DevOps_Testing/primer/backend/node_modules  # Pot do mape node_modules
-        key: ${{ runner.os }}-backend-${{ hashFiles('02_DevOps_Testing/primer/backend/package-lock.json') }}  # Ključ za cache
+        path: aplikacija/backend/node_modules
+        key: ${{ runner.os }}-backend-${{ hashFiles('aplikacija/backend/package-lock.json') }}
         restore-keys: |
           ${{ runner.os }}-backend-
       # ⚠️ Caching:
@@ -37,7 +37,7 @@ jobs:
 
     - name: Install dependencies  # Namestitev odvisnosti
       run: |
-        cd 02_DevOps_Testing/primer/backend
+        cd aplikacija/backend
         npm ci
 
     - name: Upload backend artifacts  # Naložitev artefaktov za backend
@@ -45,8 +45,8 @@ jobs:
       with:
         name: backend-build  # Ime artefakta
         path: |
-          02_DevOps_Testing/primer/backend/  
-          02_DevOps_Testing/primer/backend/node_modules/  
+          aplikacija/backend/  
+          aplikacija/backend/node_modules/  
         # Pot do celotne kode
         # Nameščene odvisnosti
 
@@ -67,14 +67,14 @@ jobs:
     - name: Cache node_modules  # Caching odvisnosti
       uses: actions/cache@v3
       with:
-        path: 02_DevOps_Testing/primer/backend/node_modules  # Pot do mape node_modules
-        key: ${{ runner.os }}-backend-${{ hashFiles('02_DevOps_Testing/primer/backend/package-lock.json') }}  # Ključ za cache
+        path: aplikacija/backend/node_modules  # Pot do mape node_modules
+        key: ${{ runner.os }}-backend-${{ hashFiles('aplikacija/backend/package-lock.json') }}  # Ključ za cache
         restore-keys: |
           ${{ runner.os }}-backend-
 
     - name: Install dependencies  # Namestitev odvisnosti
       run: |
-        cd 02_DevOps_Testing/primer/backend
+        cd aplikacija/backend
         npm install
       # ⚠️ Cache hit:
       # - Če je cache hit, npm install preveri obstoječe odvisnosti in ne namešča ničesar dodatnega.
@@ -82,11 +82,11 @@ jobs:
 
     - name: Run tests with coverage  # Izvajanje testov s pokritostjo
       run: |
-        cd 02_DevOps_Testing/primer/backend
+        cd aplikacija/backend
         npm run test:ci
 
     - name: Upload coverage report  # Naložitev poročila o pokritosti kode
       uses: actions/upload-artifact@v4
       with:
         name: backend-coverage  # Ime artefakta
-        path: 02_DevOps_Testing/primer/backend/coverage/  # Pot do poročila o pokritosti kode
+        path: aplikacija/backend/coverage/  # Pot do poročila o pokritosti kode
