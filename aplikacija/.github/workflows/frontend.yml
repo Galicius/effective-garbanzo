@@ -1,0 +1,135 @@
+name: Frontend CI/CD
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  # Gradnja frontenda
+  build-frontend:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 20
+
+    - name: Cache node_modules
+      uses: actions/cache@v3
+      with:
+        path: 04_DevOps_Deploying/primer/frontend/node_modules
+        key: ${{ runner.os }}-frontend-${{ hashFiles('04_DevOps_Deploying/primer/frontend/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-frontend-
+
+    - name: Install dependencies
+      run: |
+        cd 04_DevOps_Deploying/primer/frontend
+        npm ci
+
+    - name: Build application
+      run: |
+        cd 04_DevOps_Deploying/primer/frontend
+        npm run build
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: frontend-build
+        path: 04_DevOps_Deploying/primer/frontend/build/
+
+  # Testiranje frontenda
+  test-frontend:
+    needs: build-frontend
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 20
+
+    - name: Cache node_modules
+      uses: actions/cache@v3
+      with:
+        path: 04_DevOps_Deploying/primer/frontend/node_modules
+        key: ${{ runner.os }}-frontend-${{ hashFiles('04_DevOps_Deploying/primer/frontend/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-frontend-
+
+    - name: Install dependencies
+      run: |
+        cd 04_DevOps_Deploying/primer/frontend
+        npm install
+
+    - name: Run tests with coverage
+      run: |
+        cd 04_DevOps_Deploying/primer/frontend
+        npm run test:ci
+
+    - name: Upload coverage report
+      uses: actions/upload-artifact@v4
+      with:
+        name: frontend-coverage
+        path: 04_DevOps_Deploying/primer/frontend/coverage/
+
+  # Gradnja Docker slike in nalaganje na Docker Hub
+  dockerize-and-push:
+    needs: test-frontend  # Izvede se po uspešnem testiranju
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Login to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_TOKEN }}
+
+    - name: Build Docker image
+      run: |
+        docker build -t ${{ secrets.DOCKER_USERNAME }}/frontend:latest ./04_DevOps_Deploying/primer/frontend
+        docker tag ${{ secrets.DOCKER_USERNAME }}/frontend:latest ${{ secrets.DOCKER_USERNAME }}/frontend:${{ github.sha }}
+
+    - name: Push Docker image to Docker Hub
+      run: |
+        docker push ${{ secrets.DOCKER_USERNAME }}/frontend:latest
+        docker push ${{ secrets.DOCKER_USERNAME }}/frontend:${{ github.sha }}
+
+  # Deploy na Firebase Hosting
+  deploy-to-firebase:
+    needs: test-frontend
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Download build artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: frontend-build
+        path: 04_DevOps_Deploying/primer/frontend/build/
+
+    - name: Setup Firebase CLI
+      run: |
+        cd 04_DevOps_Deploying/primer/frontend
+        npm install -g firebase-tools
+
+    - name: Deploy to Firebase Hosting
+      run: |
+        cd 04_DevOps_Deploying/primer/frontend
+        firebase deploy --only hosting --token ${{ secrets.FIREBASE_TOKEN }}
