@@ -85,7 +85,7 @@ jobs:
 
     - name: Run tests with coverage
       run: |
-        cd aplikacija/frontend
+        cd aplikacija
         npm run test:ci
 
     - name: Upload coverage report
