@@ -38,20 +38,20 @@ jobs:
 
     - name: Install dependencies  # Namestitev odvisnosti
       run: |
-        cd aplikacija/frontend
+        cd aplikacija
         npm ci
       # Če node_modules že obstaja, npm samo preveri skladnost z datotekama package.json in package-lock.json.
 
     - name: Build application  # Gradnja aplikacije
       run: |
-        cd aplikacija/frontend
+        cd aplikacija
         npm run build
 
     - name: Upload build artifacts  # Naložitev gradbenih artefaktov
       uses: actions/upload-artifact@v4
       with:
         name: frontend-build
-        path: aplikacija/frontend/build/
+        path: aplikacija/build/
 
   # Job za testiranje frontenda
   test-frontend:
@@ -70,14 +70,14 @@ jobs:
     - name: Cache node_modules  # Caching odvisnosti
       uses: actions/cache@v3
       with:
-        path: aplikacija/frontend/node_modules
+        path: aplikacija/node_modules
         key: ${{ runner.os }}-frontend-${{ hashFiles('aplikacija/frontend/package-lock.json') }}
         restore-keys: |
           ${{ runner.os }}-frontend-
 
     - name: Install dependencies
       run: |
-        cd aplikacija/frontend
+        cd aplikacija
         npm install
       # ⚠️ KAKO PREPOZNATI, DA JE CACHE USPEŠEN?
       # - Če je cache hit, npm install ne namešča novih odvisnosti, ampak preveri obstoječe.
