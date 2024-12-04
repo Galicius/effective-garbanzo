@@ -3,6 +3,8 @@ const mysql = require("mysql2");
 const dotenv = require("dotenv");
 const cors = require("cors"); // Import the CORS middleware
 const bcrypt = require('bcrypt');
+const cors = require("cors");
+
 
 // Load environment variables from .env file
 dotenv.config({ path: "../.env" }); // Adjust path if necessary
