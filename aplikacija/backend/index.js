@@ -1,9 +1,8 @@
 const express = require("express");
 const mysql = require("mysql2");
 const dotenv = require("dotenv");
-const cors = require("cors"); // Import the CORS middleware
+const cors = require("cors"); // Import the COR
 const bcrypt = require('bcrypt');
-const cors = require("cors");
 
 
 // Load environment variables from .env file
