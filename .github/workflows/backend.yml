@@ -1,7 +1,6 @@
 # Ime pipeline-a za backend
 name: Backend CI
 
-# Dogodki, ki sprožijo workflow (push in pull request na glavno vejo)
 on:
   push:
     branches:
@@ -11,7 +10,6 @@ on:
       - main
 
 jobs:
-  # Job za gradnjo backenda
   build-and-test-backend:
     runs-on: ubuntu-latest
 
@@ -32,15 +30,15 @@ jobs:
           MYSQL_PASSWORD: testpassword
 
     steps:
-    - name: Checkout code  # Kloniranje repozitorija
+    - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Setup Node.js  # Namestitev Node.js okolja
+    - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
         node-version: 20
 
-    - name: Cache node_modules  # Caching odvisnosti za backend
+    - name: Cache node_modules
       uses: actions/cache@v3
       with:
         path: aplikacija/backend/node_modules
@@ -48,14 +46,14 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-backend-
 
-    - name: Install dependencies  # Namestitev odvisnosti za backend
+    - name: Install dependencies
       run: |
         cd aplikacija/backend
         npm ci
 
     - name: Wait for MySQL to be ready
       run: |
-        for i in {30..0}; do
+        for i in {60..0}; do
           if mysqladmin ping -h 127.0.0.1 --silent; then
             break
           fi
@@ -67,22 +65,22 @@ jobs:
       run: |
         mysql --host=127.0.0.1 --user=testuser --password=testpassword testdb < aplikacija/db/db_setup.sql
 
-    - name: Run tests with coverage  # Izvajanje testov s pokritostjo za backend
+    - name: Run tests with coverage
       run: |
         cd aplikacija/backend
-        npm run test:ci
+        npm run test:ci -- --detectOpenHandles
 
-    - name: Upload coverage report  # Shranjevanje poročila o pokritosti kode
+    - name: Upload coverage report
       uses: actions/upload-artifact@v4
       with:
         name: backend-coverage
         path: aplikacija/backend/coverage/
 
-    - name: Build backend  # Gradnja backenda
+    - name: Build backend
       run: echo "No build step for backend"
 
-    - name: Upload backend artifacts  # Shranjevanje artefaktov za backend
+    - name: Upload backend artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: backend-build  # Ime artefakta
-        path: aplikacija/backend/build  # Pot do artefaktov
+        name: backend-build
+        path: aplikacija/backend/build
