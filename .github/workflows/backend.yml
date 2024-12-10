@@ -55,6 +55,8 @@ jobs:
 
     - name: Initialize database
       run: |
+        mkdir -p aplikacija/backend/migrations
+        echo "<SQL SCRIPT CONTENT>" > aplikacija/backend/migrations/init.sql
         mysql -h 127.0.0.1 -u testuser -ptestpassword testdb < aplikacija/backend/migrations/init.sql
 
     - name: Build backend  # Gradnja backenda
