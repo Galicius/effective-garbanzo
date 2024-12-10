@@ -1,5 +1,5 @@
-# Ime pipeline-a za backend
-name: Backend CI
+# Ime pipeline-a za backend in frontend
+name: Fullstack CI
 
 # Dogodki, ki sprožijo workflow (push in pull request na glavno vejo)
 on:
@@ -24,35 +24,32 @@ jobs:
       with:
         node-version: 20
 
-    - name: Cache node_modules  # Caching odvisnosti
+    - name: Cache node_modules  # Caching odvisnosti za backend
       uses: actions/cache@v3
       with:
         path: aplikacija/backend/node_modules
         key: ${{ runner.os }}-backend-${{ hashFiles('aplikacija/backend/package-lock.json') }}
         restore-keys: |
           ${{ runner.os }}-backend-
-      # ⚠️ Caching:
-      # - Če cache obstaja (cache hit), se node_modules obnovi, preden se zažene npm install.
-      # - Če cache ne obstaja (cache miss), npm install ponovno ustvari mapo node_modules.
 
-    - name: Install dependencies  # Namestitev odvisnosti
+    - name: Install dependencies  # Namestitev odvisnosti za backend
       run: |
         cd aplikacija/backend
         npm ci
 
-    - name: Upload backend artifacts  # Naložitev artefaktov za backend
+    - name: Build backend  # Gradnja backenda
+      run: |
+        cd aplikacija/backend
+        npm run build
+
+    - name: Upload backend artifacts  # Shranjevanje artefaktov za backend
       uses: actions/upload-artifact@v4
       with:
         name: backend-build  # Ime artefakta
-        path: |
-          aplikacija/backend/  
-          aplikacija/backend/node_modules/  
-        # Pot do celotne kode
-        # Nameščene odvisnosti
+        path: aplikacija/backend/build  # Pot do artefaktov
 
-  # Job za testiranje backenda
-  test-backend:
-    needs: build-backend  # Testiranje se izvede po uspešni gradnji
+  # Job za gradnjo frontenda
+  build-frontend:
     runs-on: ubuntu-latest
 
     steps:
@@ -64,29 +61,102 @@ jobs:
       with:
         node-version: 20
 
-    - name: Cache node_modules  # Caching odvisnosti
+    - name: Cache node_modules  # Caching odvisnosti za frontend
       uses: actions/cache@v3
       with:
-        path: aplikacija/backend/node_modules  # Pot do mape node_modules
-        key: ${{ runner.os }}-backend-${{ hashFiles('aplikacija/backend/package-lock.json') }}  # Ključ za cache
+        path: aplikacija/frontend/node_modules
+        key: ${{ runner.os }}-frontend-${{ hashFiles('aplikacija/frontend/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-frontend-
+
+    - name: Install dependencies  # Namestitev odvisnosti za frontend
+      run: |
+        cd aplikacija/frontend
+        npm ci
+
+    - name: Build frontend  # Gradnja frontenda
+      run: |
+        cd aplikacija/frontend
+        npm run build
+
+    - name: Upload frontend artifacts  # Shranjevanje artefaktov za frontend
+      uses: actions/upload-artifact@v4
+      with:
+        name: frontend-build  # Ime artefakta
+        path: aplikacija/frontend/dist  # Pot do artefaktov
+
+  # Job za testiranje backenda
+  test-backend:
+    needs: build-backend  # Testiranje se izvede po uspešni gradnji backenda
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code  # Kloniranje repozitorija
+      uses: actions/checkout@v3
+
+    - name: Setup Node.js  # Namestitev Node.js okolja
+      uses: actions/setup-node@v3
+      with:
+        node-version: 20
+
+    - name: Cache node_modules  # Caching odvisnosti za backend
+      uses: actions/cache@v3
+      with:
+        path: aplikacija/backend/node_modules
+        key: ${{ runner.os }}-backend-${{ hashFiles('aplikacija/backend/package-lock.json') }}
         restore-keys: |
           ${{ runner.os }}-backend-
 
-    - name: Install dependencies  # Namestitev odvisnosti
+    - name: Install dependencies  # Namestitev odvisnosti za backend
       run: |
         cd aplikacija/backend
-        npm install
-      # ⚠️ Cache hit:
-      # - Če je cache hit, npm install preveri obstoječe odvisnosti in ne namešča ničesar dodatnega.
-      # - Če je cache miss, npm install ponovno ustvari mapo node_modules.
+        npm ci
 
-    - name: Run tests with coverage  # Izvajanje testov s pokritostjo
+    - name: Run tests with coverage  # Izvajanje testov s pokritostjo za backend
       run: |
         cd aplikacija/backend
         npm run test:ci
 
-    - name: Upload coverage report  # Naložitev poročila o pokritosti kode
+    - name: Upload coverage report  # Shranjevanje poročila o pokritosti kode
       uses: actions/upload-artifact@v4
       with:
-        name: backend-coverage  # Ime artefakta
-        path: aplikacija/backend/coverage/  # Pot do poročila o pokritosti kode
+        name: backend-coverage
+        path: aplikacija/backend/coverage/
+
+  # Job za testiranje frontenda
+  test-frontend:
+    needs: build-frontend  # Testiranje se izvede po uspešni gradnji frontenda
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code  # Kloniranje repozitorija
+      uses: actions/checkout@v3
+
+    - name: Setup Node.js  # Namestitev Node.js okolja
+      uses: actions/setup-node@v3
+      with:
+        node-version: 20
+
+    - name: Cache node_modules  # Caching odvisnosti za frontend
+      uses: actions/cache@v3
+      with:
+        path: aplikacija/frontend/node_modules
+        key: ${{ runner.os }}-frontend-${{ hashFiles('aplikacija/frontend/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-frontend-
+
+    - name: Install dependencies  # Namestitev odvisnosti za frontend
+      run: |
+        cd aplikacija/frontend
+        npm ci
+
+    - name: Run tests with coverage  # Izvajanje testov s pokritostjo za frontend
+      run: |
+        cd aplikacija/frontend
+        npm run test:ci
+
+    - name: Upload coverage report  # Shranjevanje poročila o pokritosti kode za frontend
+      uses: actions/upload-artifact@v4
+      with:
+        name: frontend-coverage
+        path: aplikacija/frontend/coverage/

@@ -1,5 +1,93 @@
 const request = require("supertest");
-const app = require("./index.js"); // Adjust the path to your server file
+const app = require("./index.js"); // Adjust the path to your Express app
+const bcrypt = require("bcrypt");
+
+
+describe("POST /api/employees", () => {
+
+  test("should add an employee successfully", async () => {
+    const response = await request(app)
+      .post("/api/employees")
+      .send({
+        name: "John Doe",
+        email: "john@example.com",
+        username: "johndoe",
+        password: "password123",
+        isBoss: 1,
+      });
+
+    expect(response.status).toBe(201);
+    expect(response.body).toEqual(
+      expect.objectContaining({
+        message: "Employee added successfully",
+        id: expect.any(Number),
+      })
+    );
+  });
+
+  test("should hash the password before saving", async () => {
+    const bcryptHashSpy = jest.spyOn(bcrypt, "hash").mockResolvedValue("hashedPassword");
+
+    const response = await request(app)
+      .post("/api/employees")
+      .send({
+        name: "Jane Smith",
+        email: "jane@example.com",
+        username: "janesmith",
+        password: "securepassword",
+        isBoss: 0,
+      });
+
+    expect(bcryptHashSpy).toHaveBeenCalledWith("securepassword", 10);
+    expect(response.status).toBe(201);
+    bcryptHashSpy.mockRestore();
+  });
+
+  test("should set isBoss to 0 if not provided", async () => {
+    const response = await request(app)
+      .post("/api/employees")
+      .send({
+        name: "Tom Hardy",
+        email: "tom@example.com",
+        username: "tomhardy",
+        password: "password456",
+      });
+
+    expect(response.status).toBe(201);
+    expect(response.body).toEqual(
+      expect.objectContaining({
+        message: "Employee added successfully",
+        id: expect.any(Number),
+      })
+    );
+  });
+
+  test("should return 500 if database query fails", async () => {
+    const response = await request(app)
+      .post("/api/employees")
+      .send({
+        email: "missingfields@example.com",
+        password: "password123",
+      });
+
+    expect(response.status).toBe(500);
+    expect(response.body).toHaveProperty("error", "Failed to add employee");
+  });
+
+  test("should return 400 if required fields are missing", async () => {
+    const response = await request(app)
+      .post("/api/employees")
+      .send({
+        email: "missingfields@example.com",
+        password: "password123",
+      });
+
+    expect(response.status).toBe(500);
+    expect(response.body).toHaveProperty("error", "Failed to add employee");
+  });
+
+});
+
 
 describe("API Endpoints", () => {
   
@@ -114,5 +202,6 @@ describe("API Endpoints", () => {
     expect(response.status).toBe(404);
     expect(response.body).toHaveProperty("message", "No entries found for the given criteria");
   });
+  
 
 });

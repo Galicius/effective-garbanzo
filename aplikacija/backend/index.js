@@ -104,6 +104,7 @@ app.get("/api/entries", (req, res) => {
   });
 });
 
+
 // Update a specific work entry by ID
 app.put("/api/entries/:id", (req, res) => {
   const id = req.params.id;
@@ -163,6 +164,28 @@ app.get("/api/entries/month", (req, res) => {
     // The result now includes all columns from employees and total worked hours
     console.log("Results:", results);
     res.json(results);  // Send the full results with employee data and total hours
+  });
+});
+
+app.post("/api/employees", async (req, res) => {
+  const { name, email, username, password, isBoss } = req.body;
+
+  console.log("Adding a new employee:", { name, email, username, isBoss });
+
+  // Hash the password before saving it to the database
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  const query = "INSERT INTO employees (name, email, username, password, isBoss) VALUES (?, ?, ?, ?, ?)";
+  const queryParams = [name, email, username, hashedPassword, isBoss || 0];
+
+  db.query(query, queryParams, (err, result) => {
+    if (err) {
+      console.error("Failed to add employee:", err);
+      return res.status(500).json({ error: "Failed to add employee" });
+    }
+
+    console.log("Employee added successfully:", result);
+    res.status(201).json({ message: "Employee added successfully", id: result.insertId });
   });
 });
 
