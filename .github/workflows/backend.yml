@@ -65,7 +65,7 @@ jobs:
 
     - name: Initialize database
       run: |
-        mysql --host=127.0.0.1 --user=projectuser --password=projectpass123 projectdb < aplikacija/backend/db/db_setup.sql
+        mysql --host=127.0.0.1 --user=projectuser --password=projectpass123 projectdb < aplikacija/db/db_setup.sql
 
     - name: Build backend  # Gradnja backenda
       run: echo "No build step for backend"
