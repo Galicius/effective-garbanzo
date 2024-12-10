@@ -1,5 +1,5 @@
-# Ime pipeline-a za backend in frontend
-name: Fullstack CI
+# Ime pipeline-a za backend
+name: Backend CI
 
 # Dogodki, ki sprožijo workflow (push in pull request na glavno vejo)
 on:
@@ -14,6 +14,22 @@ jobs:
   # Job za gradnjo backenda
   build-backend:
     runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+        env:
+          MYSQL_ROOT_PASSWORD: rootpassword
+          MYSQL_DATABASE: testdb
+          MYSQL_USER: testuser
+          MYSQL_PASSWORD: testpassword
 
     steps:
     - name: Checkout code  # Kloniranje repozitorija
@@ -37,53 +53,18 @@ jobs:
         cd aplikacija/backend
         npm ci
 
-    - name: Build backend  # Gradnja backenda
+    - name: Initialize database
       run: |
-        cd aplikacija/backend
-        npm run build
+        mysql -h 127.0.0.1 -u testuser -ptestpassword testdb < aplikacija/backend/migrations/init.sql
+
+    - name: Build backend  # Gradnja backenda
+      run: echo "No build step for backend"
 
     - name: Upload backend artifacts  # Shranjevanje artefaktov za backend
       uses: actions/upload-artifact@v4
       with:
         name: backend-build  # Ime artefakta
         path: aplikacija/backend/build  # Pot do artefaktov
-
-  # Job za gradnjo frontenda
-  build-frontend:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout code  # Kloniranje repozitorija
-      uses: actions/checkout@v3
-
-    - name: Setup Node.js  # Namestitev Node.js okolja
-      uses: actions/setup-node@v3
-      with:
-        node-version: 20
-
-    - name: Cache node_modules  # Caching odvisnosti za frontend
-      uses: actions/cache@v3
-      with:
-        path: aplikacija/frontend/node_modules
-        key: ${{ runner.os }}-frontend-${{ hashFiles('aplikacija/frontend/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-frontend-
-
-    - name: Install dependencies  # Namestitev odvisnosti za frontend
-      run: |
-        cd aplikacija/frontend
-        npm ci
-
-    - name: Build frontend  # Gradnja frontenda
-      run: |
-        cd aplikacija/frontend
-        npm run build
-
-    - name: Upload frontend artifacts  # Shranjevanje artefaktov za frontend
-      uses: actions/upload-artifact@v4
-      with:
-        name: frontend-build  # Ime artefakta
-        path: aplikacija/frontend/dist  # Pot do artefaktov
 
   # Job za testiranje backenda
   test-backend:
@@ -122,41 +103,3 @@ jobs:
       with:
         name: backend-coverage
         path: aplikacija/backend/coverage/
-
-  # Job za testiranje frontenda
-  test-frontend:
-    needs: build-frontend  # Testiranje se izvede po uspešni gradnji frontenda
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout code  # Kloniranje repozitorija
-      uses: actions/checkout@v3
-
-    - name: Setup Node.js  # Namestitev Node.js okolja
-      uses: actions/setup-node@v3
-      with:
-        node-version: 20
-
-    - name: Cache node_modules  # Caching odvisnosti za frontend
-      uses: actions/cache@v3
-      with:
-        path: aplikacija/frontend/node_modules
-        key: ${{ runner.os }}-frontend-${{ hashFiles('aplikacija/frontend/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-frontend-
-
-    - name: Install dependencies  # Namestitev odvisnosti za frontend
-      run: |
-        cd aplikacija/frontend
-        npm ci
-
-    - name: Run tests with coverage  # Izvajanje testov s pokritostjo za frontend
-      run: |
-        cd aplikacija/frontend
-        npm run test:ci
-
-    - name: Upload coverage report  # Shranjevanje poročila o pokritosti kode za frontend
-      uses: actions/upload-artifact@v4
-      with:
-        name: frontend-coverage
-        path: aplikacija/frontend/coverage/
