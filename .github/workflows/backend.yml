@@ -12,12 +12,12 @@ on:
 
 jobs:
   # Job za gradnjo backenda
-  build-backend:
+  build-and-test-backend:
     runs-on: ubuntu-latest
 
     services:
       mysql:
-        image: mysql:latest
+        image: mysql:8.0
         ports:
           - 3306:3306
         options: >-
@@ -26,10 +26,10 @@ jobs:
           --health-timeout=5s
           --health-retries=3
         env:
-          MYSQL_ROOT_PASSWORD: rootpassword123
-          MYSQL_DATABASE: projectdb
-          MYSQL_USER: projectuser
-          MYSQL_PASSWORD: projectpass123
+          MYSQL_ROOT_PASSWORD: rootpassword
+          MYSQL_DATABASE: testdb
+          MYSQL_USER: testuser
+          MYSQL_PASSWORD: testpassword
 
     steps:
     - name: Checkout code  # Kloniranje repozitorija
@@ -65,43 +65,7 @@ jobs:
 
     - name: Initialize database
       run: |
-        mysql --host=127.0.0.1 --user=projectuser --password=projectpass123 projectdb < aplikacija/db/db_setup.sql
-
-    - name: Build backend  # Gradnja backenda
-      run: echo "No build step for backend"
-
-    - name: Upload backend artifacts  # Shranjevanje artefaktov za backend
-      uses: actions/upload-artifact@v4
-      with:
-        name: backend-build  # Ime artefakta
-        path: aplikacija/backend/build  # Pot do artefaktov
-
-  # Job za testiranje backenda
-  test-backend:
-    needs: build-backend  # Testiranje se izvede po uspešni gradnji backenda
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout code  # Kloniranje repozitorija
-      uses: actions/checkout@v3
-
-    - name: Setup Node.js  # Namestitev Node.js okolja
-      uses: actions/setup-node@v3
-      with:
-        node-version: 20
-
-    - name: Cache node_modules  # Caching odvisnosti za backend
-      uses: actions/cache@v3
-      with:
-        path: aplikacija/backend/node_modules
-        key: ${{ runner.os }}-backend-${{ hashFiles('aplikacija/backend/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-backend-
-
-    - name: Install dependencies  # Namestitev odvisnosti za backend
-      run: |
-        cd aplikacija/backend
-        npm ci
+        mysql --host=127.0.0.1 --user=testuser --password=testpassword testdb < aplikacija/backend/db/db_setup.sql
 
     - name: Run tests with coverage  # Izvajanje testov s pokritostjo za backend
       run: |
@@ -113,3 +77,12 @@ jobs:
       with:
         name: backend-coverage
         path: aplikacija/backend/coverage/
+
+    - name: Build backend  # Gradnja backenda
+      run: echo "No build step for backend"
+
+    - name: Upload backend artifacts  # Shranjevanje artefaktov za backend
+      uses: actions/upload-artifact@v4
+      with:
+        name: backend-build  # Ime artefakta
+        path: aplikacija/backend/build  # Pot do artefaktov
