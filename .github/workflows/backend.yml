@@ -65,7 +65,7 @@ jobs:
 
     - name: Initialize database
       run: |
-        mysql --host=127.0.0.1 --user=testuser --password=testpassword testdb < aplikacija/backend/db/db_setup.sql
+        mysql --host=127.0.0.1 --user=testuser --password=testpassword testdb < aplikacija/db/db_setup.sql
 
     - name: Run tests with coverage  # Izvajanje testov s pokritostjo za backend
       run: |
