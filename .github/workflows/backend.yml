@@ -1,4 +1,3 @@
-# Ime pipeline-a za backend
 name: Backend CI
 
 on:
@@ -10,77 +9,74 @@ on:
       - main
 
 jobs:
-  build-and-test-backend:
+  # Job za gradnjo backenda
+  build-backend:
     runs-on: ubuntu-latest
 
-    services:
-      mysql:
-        image: mysql:8.0
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping --silent"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=3
-        env:
-          MYSQL_ROOT_PASSWORD: rootpassword
-          MYSQL_DATABASE: testdb
-          MYSQL_USER: testuser
-          MYSQL_PASSWORD: testpassword
-
     steps:
-    - name: Checkout code
+    - name: Checkout code  # Kloniranje repozitorija
       uses: actions/checkout@v3
 
-    - name: Setup Node.js
+    - name: Setup Node.js  # Namestitev Node.js okolja
       uses: actions/setup-node@v3
       with:
         node-version: 20
 
-    - name: Cache node_modules
+    - name: Cache node_modules  # Caching odvisnosti
       uses: actions/cache@v3
       with:
-        path: aplikacija/backend/node_modules
-        key: ${{ runner.os }}-backend-${{ hashFiles('aplikacija/backend/package-lock.json') }}
+        path: aplikacija/backend/node_modules  # Pot do mape node_modules
+        key: ${{ runner.os }}-backend-${{ hashFiles('aplikacija/backend/package-lock.json') }}  # Ključ za cache
         restore-keys: |
           ${{ runner.os }}-backend-
 
-    - name: Install dependencies
+    - name: Install dependencies  # Namestitev odvisnosti
       run: |
         cd aplikacija/backend
         npm ci
 
-    - name: Wait for MySQL to be ready
-      run: |
-        for i in {60..0}; do
-          if mysqladmin ping -h 127.0.0.1 --silent; then
-            break
-          fi
-          echo "Waiting for MySQL to initialize..."
-          sleep 1
-        done
+    - name: Upload backend artifacts  # Naložitev artefaktov za backend
+      uses: actions/upload-artifact@v4
+      with:
+        name: build  # Ime artefakta
+        path: |
+          aplikacija/backend/  
+          aplikacija/backend/node_modules/  # Pot do celotne kode in nameščenih odvisnosti
 
-    - name: Initialize database
-      run: |
-        mysql --host=127.0.0.1 --user=testuser --password=testpassword testdb < aplikacija/db/db_setup.sql
+  # Job za testiranje backenda
+  test-backend:
+    needs: build-backend  # Testiranje se izvede po uspešni gradnji
+    runs-on: ubuntu-latest
 
-    - name: Run tests with coverage
+    steps:
+    - name: Checkout code  # Kloniranje repozitorija
+      uses: actions/checkout@v3
+
+    - name: Setup Node.js  # Namestitev Node.js okolja
+      uses: actions/setup-node@v3
+      with:
+        node-version: 20
+
+    - name: Cache node_modules  # Caching odvisnosti
+      uses: actions/cache@v3
+      with:
+        path: aplikacija/backend/node_modules  # Pot do mape node_modules
+        key: ${{ runner.os }}-backend-${{ hashFiles('aplikacija/backend/package-lock.json') }}  # Ključ za cache
+        restore-keys: |
+          ${{ runner.os }}-backend-
+
+    - name: Install dependencies  # Namestitev odvisnosti
       run: |
         cd aplikacija/backend
-        npm run test:ci -- --detectOpenHandles
+        npm install
 
-    - name: Upload coverage report
+    - name: Run tests with coverage  # Izvajanje testov s pokritostjo
+      run: |
+        cd aplikacija/backend
+        npm run test:ci
+
+    - name: Upload coverage report  # Naložitev poročila o pokritosti kode
       uses: actions/upload-artifact@v4
       with:
-        name: backend-coverage
-        path: aplikacija/backend/coverage/
-
-    - name: Build backend
-      run: echo "No build step for backend"
-
-    - name: Upload backend artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: backend-build
-        path: aplikacija/backend/build
+        name: backend-coverage  # Ime artefakta
+        path: aplikacija/backend/coverage/  # Pot do poročila o pokritosti kode
