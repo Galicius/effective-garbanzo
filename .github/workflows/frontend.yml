@@ -38,7 +38,7 @@ jobs:
           elif [[ "${{ github.ref }}" == "refs/heads/production" ]]; then
             TAG="prod"
           fi
-          docker build -t galicius8113/frontend-image:$TAG .
+          docker build -t -f aplikacija/Dockerfile galicius8113/frontend-image:$TAG .
           echo "TAG=$TAG" >> $GITHUB_ENV
         working-directory: aplikacija
 
@@ -47,5 +47,4 @@ jobs:
           echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
           docker push galicius8113/frontend-image:${{ env.TAG }}
 
-    environment:
-      name: ${{ github.ref == 'refs/heads/production' && 'Production' || 'Development' }}
+    environment: Galicius
