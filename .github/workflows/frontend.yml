@@ -24,7 +24,7 @@ jobs:
         working-directory: aplikacija
 
       - name: Run Specific Tests
-        run: npx jest src/vaja4funk.test.js --passWithNoTests
+        run: npx jest src/frt.test.js --passWithNoTests
         working-directory: aplikacija
 
       - name: Build Application
@@ -38,7 +38,7 @@ jobs:
           elif [[ "${{ github.ref }}" == "refs/heads/production" ]]; then
             TAG="prod"
           fi
-          docker build -t -f aplikacija/Dockerfile galicius8113/frontend-image:$TAG .
+          docker build -f aplikacija/Dockerfile -t galicius8113/frontend-image:$TAG .
           echo "TAG=$TAG" >> $GITHUB_ENV
         working-directory: aplikacija
 
