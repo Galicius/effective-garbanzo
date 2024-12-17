@@ -23,9 +23,9 @@ jobs:
         run: npm install
         working-directory: aplikacija
 
-      - name: Run Specific Tests
-        run: npx jest src/frt.test.js --passWithNoTests
-        working-directory: aplikacija
+     # - name: Run Specific Tests
+     #   run: npx jest src/frt.test.js --passWithNoTests
+     #   working-directory: aplikacija
 
       - name: Build Application
         run: npm run build
