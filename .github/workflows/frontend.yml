@@ -7,7 +7,7 @@ on:
       - production
 
 jobs:
-  build-and-deploy-frontend:
+  frontend:
     runs-on: ubuntu-latest
 
     steps:
@@ -17,29 +17,35 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20'
+          node-version: '18'
 
-      # name: Install Dependencies
-      #  run: |
-      #    cd aplikacija
-       #   npm install
+      - name: Install Dependencies
+        run: npm install
+        working-directory: aplikacija
+
+      - name: Run Specific Tests
+        run: npx jest src/vaja4funk.test.js --passWithNoTests
+        working-directory: aplikacija
 
       - name: Build Application
-        run: |
-          cd aplikacija
-          npm run build
+        run: npm run build
+        working-directory: aplikacija
 
       - name: Build Docker Image
         run: |
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            TAG="latest"
+            TAG="dev"
           elif [[ "${{ github.ref }}" == "refs/heads/production" ]]; then
-            TAG="production"
+            TAG="prod"
           fi
-          docker build -t Galicius/frontend:$TAG -f Dockerfile.frontend .
+          docker build -t galicius8113/frontend-image:$TAG .
           echo "TAG=$TAG" >> $GITHUB_ENV
+        working-directory: aplikacija
 
       - name: Push Docker Image
         run: |
           echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-          docker push Galicius/frontend:${{ env.TAG }}
+          docker push galicius8113/frontend-image:${{ env.TAG }}
+
+    environment:
+      name: ${{ github.ref == 'refs/heads/production' && 'Production' || 'Development' }}

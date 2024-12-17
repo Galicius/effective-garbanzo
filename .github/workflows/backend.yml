@@ -7,7 +7,7 @@ on:
       - production
 
 jobs:
-  build-and-deploy-backend:
+  backend:
     runs-on: ubuntu-latest
 
     services:
@@ -18,6 +18,11 @@ jobs:
           MYSQL_DATABASE: projectdb
           MYSQL_USER: projectuser
           MYSQL_PASSWORD: projectpass123
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
         ports:
           - 3306:3306
 
@@ -28,29 +33,37 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: "20"
+          node-version: "18"
 
       - name: Install Dependencies
-        run: |
-          cd aplikacija/backend
-          npm install
+        run: npm install
+        working-directory: aplikacija/backend
 
-        # name: Run Tests
-        #run: |
-        #  cd aplikacija/backend
-        #  npm test
+      - name: Start Backend Server
+        run: npm start &
+        working-directory: aplikacija/backend
 
-      - name: Build Docker Image
+      - name: Wait for Backend to Start
+        run: sleep 10
+
+     # - name: Run Tests
+     #   run: npm test
+     #   working-directory: aplikacija/backend/tests
+
+      - name: Build Backend Docker Image ########
         run: |
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            TAG="latest"
+            TAG="dev"
           elif [[ "${{ github.ref }}" == "refs/heads/production" ]]; then
-            TAG="production"
+            TAG="prod"
           fi
-          docker build -t Galicius/backend:$TAG -f Dockerfile.backend .
+          docker build -f aplikacija/backend/Dockerfilebackend -t galicius8113/backend:$TAG .
           echo "TAG=$TAG" >> $GITHUB_ENV
 
       - name: Push Docker Image
         run: |
           echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-          docker push Galicius/backend:${{ env.TAG }}
+          docker push galicius8113/backend:${{ env.TAG }}
+
+    environment:
+      name: ${{ github.ref == 'refs/heads/production' && 'Production' || 'Development' }}
