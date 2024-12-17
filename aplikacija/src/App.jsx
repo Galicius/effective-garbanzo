@@ -6,12 +6,13 @@ import EditEntryForm from "./components/EditEntryForm";
 import LoginForm from "./components/LoginForm";
 import EmployeeHoursTable from "./components/EmployeeHoursTable";
 import Overview from "./components/Overview";
+import DashboardSummary from "./components/DashboardSummary";
 
 const App = () => {
   const [currentView, setCurrentView] = useState("login");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [employeeId, setEmployeeId] = useState(null);
-  const [selectedEntry, setSelectedEntry] = useState(null); 
+  const [selectedEntry, setSelectedEntry] = useState(null);
 
   const handleNavigate = (view) => {
     setCurrentView(view);
@@ -45,6 +46,8 @@ const App = () => {
         {currentView === "editEntry" && selectedEntry && (
           <EditEntryForm entryId={selectedEntry.id} />
         )}
+
+        {currentView === "dashboard" && <DashboardSummary />}
       </div>
     </Router>
   );

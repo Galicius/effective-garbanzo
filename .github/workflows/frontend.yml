@@ -1,4 +1,4 @@
-name: Backend CI/CD
+name: Frontend CI/CD
 
 on:
   push:
@@ -7,19 +7,8 @@ on:
       - production
 
 jobs:
-  build-and-deploy-backend:
+  build-and-deploy-frontend:
     runs-on: ubuntu-latest
-
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: rootpassword
-          MYSQL_DATABASE: projectdb
-          MYSQL_USER: projectuser
-          MYSQL_PASSWORD: projectpass123
-        ports:
-          - 3306:3306
 
     steps:
       - name: Checkout Code
@@ -28,17 +17,17 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: "20"
+          node-version: '20'
 
       - name: Install Dependencies
         run: |
-          cd aplikacija/backend
+          cd aplikacija
           npm install
 
-      - name: Run Tests
+      - name: Build Application
         run: |
-          cd aplikacija/backend
-          npm test
+          cd aplikacija
+          npm run build
 
       - name: Build Docker Image
         run: |
@@ -47,10 +36,10 @@ jobs:
           elif [[ "${{ github.ref }}" == "refs/heads/production" ]]; then
             TAG="production"
           fi
-          docker build -t Galicius/backend:$TAG -f Dockerfile.backend .
+          docker build -t Galicius/frontend:$TAG -f Dockerfile.frontend .
           echo "TAG=$TAG" >> $GITHUB_ENV
 
       - name: Push Docker Image
         run: |
           echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-          docker push Galicius/backend:${{ env.TAG }}
+          docker push Galicius/frontend:${{ env.TAG }}

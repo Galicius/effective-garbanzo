@@ -29,7 +29,7 @@
     "@emotion/styled": "^11.13.0",
     "@mui/icons-material": "^6.1.6",
     "@mui/material": "^6.1.6",
-    "@mui/x-charts": "^7.22.2",
+    "@mui/x-charts": "^7.23.2",
     "axios": "^1.7.7",
     "bcrypt": "^5.1.1",
     "chart.js": "^4.4.6",

@@ -167,6 +167,56 @@ app.get("/api/entries/month", (req, res) => {
   });
 });
 
+// Get summary of employees and work entries
+app.get("/api/summary", (req, res) => {
+  console.log("Fetching summary data...");
+
+  // Queries to calculate total employees, total hours worked, and average hours
+  const totalEmployeesQuery = "SELECT COUNT(*) AS totalEmployees FROM employees";
+  const totalHoursWorkedQuery = "SELECT SUM(hours_worked) AS totalHoursWorked FROM work_entries";
+  const averageHoursPerEmployeeQuery = `
+    SELECT AVG(total_hours) AS averageHours
+    FROM (
+      SELECT SUM(hours_worked) AS total_hours 
+      FROM work_entries 
+      GROUP BY employee_id
+    ) AS subquery
+  `;
+
+  // Execute all queries asynchronously
+  db.query(totalEmployeesQuery, (err1, totalEmployeesResult) => {
+    if (err1) {
+      console.error("Failed to fetch total employees:", err1);
+      return res.status(500).json({ error: "Failed to fetch total employees" });
+    }
+
+    db.query(totalHoursWorkedQuery, (err2, totalHoursResult) => {
+      if (err2) {
+        console.error("Failed to fetch total hours worked:", err2);
+        return res.status(500).json({ error: "Failed to fetch total hours worked" });
+      }
+
+      db.query(averageHoursPerEmployeeQuery, (err3, averageHoursResult) => {
+        if (err3) {
+          console.error("Failed to fetch average hours:", err3);
+          return res.status(500).json({ error: "Failed to fetch average hours" });
+        }
+
+        // Construct the response object
+        const summary = {
+          totalEmployees: totalEmployeesResult[0].totalEmployees || 0,
+          totalHoursWorked: totalHoursResult[0].totalHoursWorked || 0,
+          averageHoursPerEmployee: parseFloat(averageHoursResult[0].averageHours || 0).toFixed(2),
+        };
+
+        console.log("Summary data fetched successfully:", summary);
+        res.json(summary);
+      });
+    });
+  });
+});
+
+
 app.post("/api/employees", async (req, res) => {
   const { name, email, username, password, isBoss } = req.body;
 

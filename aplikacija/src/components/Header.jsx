@@ -18,6 +18,9 @@ const Header = ({ onNavigate }) => {
         <Button color="inherit" onClick={() => onNavigate('pregled')}>
           Pregled
         </Button>
+        <Button color="inherit" onClick={() => onNavigate('dashboard')}>
+          Dashboard
+        </Button>
       </Toolbar>
     </AppBar>
   );
