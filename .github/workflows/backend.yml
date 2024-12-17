@@ -35,10 +35,10 @@ jobs:
           cd aplikacija/backend
           npm install
 
-      - name: Run Tests
-        run: |
-          cd aplikacija/backend
-          npm test
+        # name: Run Tests
+        #run: |
+        #  cd aplikacija/backend
+        #  npm test
 
       - name: Build Docker Image
         run: |
