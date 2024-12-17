@@ -1,6 +1,9 @@
-# Stage 1: Build Stage
-FROM node:20-alpine as build
+FROM node:20-alpine
 
+# Install required build dependencies
+RUN apk add --no-cache python3 py3-pip make g++ libc-dev cairo-dev pango-dev libjpeg-turbo-dev libpng-dev giflib-dev
+
+# Set working directory
 WORKDIR /app
 
 # Install dependencies
@@ -11,10 +14,8 @@ RUN npm install
 COPY aplikacija ./
 RUN npm run build
 
-# Stage 2: Serve with Nginx
+# Stage 2: Use NGINX for serving
 FROM nginx:alpine
-
-COPY --from=build /app/build /usr/share/nginx/html
+COPY --from=0 /app/dist /usr/share/nginx/html
 EXPOSE 80
-
 CMD ["nginx", "-g", "daemon off;"]
