@@ -38,9 +38,9 @@ jobs:
           elif [[ "${{ github.ref }}" == "refs/heads/production" ]]; then
             TAG="prod"
           fi
-          docker build -f Dockerfile -t galicius8113/frontend-image:$TAG .
+          docker build -f aplikacija/Dockerfile -t galicius8113/frontend-image:$TAG .
           echo "TAG=$TAG" >> $GITHUB_ENV
-        working-directory: aplikacija
+      
 
       - name: Push Docker Image
         run: |
