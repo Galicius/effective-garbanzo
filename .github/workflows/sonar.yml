@@ -49,7 +49,7 @@ jobs:
 
           echo "Quality Gate Status: $STATUS"
           if [[ "$STATUS" == "OK" ]]; then
-            echo "✅ Quality Gate passed!"
+            echo "✅ Quality Gate passed, you are a good person!"
           else
             echo "❌ Quality Gate failed. Blocking pipeline."
             exit 1
