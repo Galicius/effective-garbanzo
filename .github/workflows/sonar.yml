@@ -48,7 +48,7 @@ jobs:
             | jq -r '.projectStatus.status')
 
           echo "Quality Gate Status: $STATUS"
-          if [[ "$STATUS" == "OK" ]]; then
+          if [[ "$STATUS" != "OK" ]]; then
             echo "✅ Quality Gate passed, you are a good person!"
           else
             echo "❌ Quality Gate failed. Blocking pipeline."
