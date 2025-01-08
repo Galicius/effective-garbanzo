@@ -30,7 +30,7 @@ jobs:
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.sonar }}
         with:
           projectBaseDir: ./aplikacija
           args: >
@@ -43,7 +43,7 @@ jobs:
       - name: Check Quality Gate
         run: |
           echo "Checking SonarCloud Quality Gate..."
-          STATUS=$(curl -s -u ${{ secrets.SONAR_TOKEN }}: \
+          STATUS=$(curl -s -u ${{ secrets.sonar }}: \
             "https://sonarcloud.io/api/qualitygates/project_status?projectKey=Galicius_effective-garbanzo" \
             | jq -r '.projectStatus.status')
 
@@ -55,4 +55,4 @@ jobs:
             exit 1
           fi
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.sonar }}
