@@ -1,0 +1,58 @@
+name: SonarCloud Analysis
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  sonarcloud:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Dependencies
+        run: npm install
+        working-directory: ./aplikacija
+
+      - name: Run Specific Tests and Generate Coverage
+        run: |
+          npx jest src/vaja4funk.test.js --coverage --passWithNoTests
+        working-directory: ./aplikacija
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v2
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          projectBaseDir: ./aplikacija
+          args: >
+            -Dsonar.organization=galicius
+            -Dsonar.projectKey=Galicius_effective-garbanzo
+            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+            -Dsonar.sources=.
+            -Dsonar.exclusions=**/node_modules/**,**/dist/**
+
+      - name: Check Quality Gate
+        run: |
+          echo "Checking SonarCloud Quality Gate..."
+          STATUS=$(curl -s -u ${{ secrets.SONAR_TOKEN }}: \
+            "https://sonarcloud.io/api/qualitygates/project_status?projectKey=Galicius_effective-garbanzo" \
+            | jq -r '.projectStatus.status')
+
+          echo "Quality Gate Status: $STATUS"
+          if [[ "$STATUS" != "OK" ]]; then
+            echo "✅ Quality Gate passed!"
+          else
+            echo "❌ Quality Gate failed. Blocking pipeline."
+            exit 1
+          fi
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
